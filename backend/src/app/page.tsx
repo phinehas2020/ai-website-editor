@@ -1,95 +1,56 @@
-import Image from "next/image";
-import styles from "./page.module.css";
-
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>src/app/page.tsx</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'system-ui, -apple-system, sans-serif',
+      backgroundColor: '#0a0a0a',
+      color: '#ededed',
+      padding: '2rem',
+    }}>
+      <main style={{ maxWidth: '600px', textAlign: 'center' }}>
+        <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+          🌐 AI Website Editor API
+        </h1>
+        <p style={{ color: '#888', marginBottom: '2rem' }}>
+          Backend service for the AI Website Editor platform
+        </p>
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+        <div style={{
+          backgroundColor: '#1a1a1a',
+          borderRadius: '12px',
+          padding: '1.5rem',
+          textAlign: 'left',
+          marginBottom: '2rem',
+        }}>
+          <h2 style={{ fontSize: '1.2rem', marginBottom: '1rem', color: '#10b981' }}>
+            ✓ API Status: Online
+          </h2>
+
+          <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: '#888' }}>
+            Available Endpoints:
+          </h3>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '0.9rem' }}>
+            <li style={{ padding: '0.3rem 0' }}>POST /api/auth/register</li>
+            <li style={{ padding: '0.3rem 0' }}>POST /api/auth/login</li>
+            <li style={{ padding: '0.3rem 0' }}>GET /api/auth/me</li>
+            <li style={{ padding: '0.3rem 0' }}>GET /api/sites</li>
+            <li style={{ padding: '0.3rem 0' }}>POST /api/sites</li>
+            <li style={{ padding: '0.3rem 0' }}>POST /api/sites/[id]/chat</li>
+            <li style={{ padding: '0.3rem 0' }}>GET /api/sites/[id]/preview/[changeId]</li>
+            <li style={{ padding: '0.3rem 0' }}>POST /api/sites/[id]/approve/[changeId]</li>
+            <li style={{ padding: '0.3rem 0' }}>POST /api/sites/[id]/reject/[changeId]</li>
+            <li style={{ padding: '0.3rem 0' }}>GET /api/sites/[id]/history</li>
+          </ul>
         </div>
+
+        <p style={{ color: '#666', fontSize: '0.85rem' }}>
+          Use the iOS app to interact with this API
+        </p>
       </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
