@@ -6,7 +6,7 @@ const octokit = new Octokit({
 
 const GITHUB_ORG = process.env.GITHUB_ORG || '';
 
-function getOwnerAndRepo(repoName: string): { owner: string; repo: string } {
+export function getOwnerAndRepo(repoName: string): { owner: string; repo: string } {
   if (repoName.includes('/')) {
     const [owner, repo] = repoName.split('/');
     return { owner, repo };

@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { corsResponse, corsErrorResponse, handleCorsOptions } from '@/lib/cors';
-import { getRepoFiles, createBranch, commitFiles, getDefaultBranch } from '@/lib/github';
+import { getRepoFiles, createBranch, commitFiles, getDefaultBranch, getOwnerAndRepo } from '@/lib/github';
 import { generateCodeChanges, AIModel } from '@/lib/ai';
 
 const VERCEL_TEAM_ID = process.env.VERCEL_TEAM_ID || '';
@@ -55,7 +55,16 @@ export async function POST(
 
     if (files.length === 0) {
       console.log('❌ [ChatAPI] No editable files found!');
-      return corsErrorResponse('No editable files found in repository', 400);
+      // Return debug info in the error to verify what the server sees
+      return corsResponse({
+        error: 'No editable files found in repository',
+        debug: {
+          repoName: site.repoName,
+          defaultBranch,
+          filesFound: files.length,
+          ownerAndRepo: getOwnerAndRepo(site.repoName)
+        }
+      }, 400);
     }
 
     const aiResponse = await generateCodeChanges(files, message, model as AIModel);
