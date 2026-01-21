@@ -5,7 +5,7 @@ import Combine
 struct ChatMessage: Identifiable {
     let id = UUID()
     let isUser: Bool
-    let content: String
+    var content: String
     let timestamp: Date
     var pendingChangeId: String?
     var previewUrl: String?
@@ -53,6 +53,13 @@ class SiteEditorViewModel: ObservableObject {
         let messageText = currentInput.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !messageText.isEmpty else { return }
 
+        print("📝 [SiteEditor] ====== SEND MESSAGE START ======")
+        print("📝 [SiteEditor] Site ID: \(site.id)")
+        print("📝 [SiteEditor] Site Name: \(site.name)")
+        print("📝 [SiteEditor] Repo Name: \(site.repoName)")
+        print("📝 [SiteEditor] Message: \(messageText)")
+        print("📝 [SiteEditor] Model: \(selectedModel)")
+
         currentInput = ""
         isProcessing = true
         errorMessage = nil
@@ -74,11 +81,18 @@ class SiteEditorViewModel: ObservableObject {
         messages.append(aiMessage)
 
         do {
+            print("📝 [SiteEditor] Calling APIClient.sendChat...")
             let response = try await APIClient.shared.sendChat(
                 siteId: site.id,
                 message: messageText,
                 model: selectedModel
             )
+            
+            print("📝 [SiteEditor] ✅ Response received:")
+            print("📝 [SiteEditor] - Summary: \(response.summary)")
+            print("📝 [SiteEditor] - Pending Change ID: \(response.pendingChangeId ?? "nil")")
+            print("📝 [SiteEditor] - Preview URL: \(response.previewUrl ?? "nil")")
+            print("📝 [SiteEditor] - Files Changed: \(response.filesChanged ?? [])")
 
             if let index = messages.lastIndex(where: { !$0.isUser && $0.status == .processing }) {
                 messages[index].content = response.summary
@@ -93,12 +107,15 @@ class SiteEditorViewModel: ObservableObject {
                 }
             }
         } catch let error as APIError {
+            print("📝 [SiteEditor] 🔴 APIError: \(error.localizedDescription ?? "unknown")")
             errorMessage = error.localizedDescription
             if let index = messages.lastIndex(where: { !$0.isUser && $0.status == .processing }) {
-                messages[index].content = "Error: \(error.localizedDescription)"
+                messages[index].content = "Error: \(error.localizedDescription ?? "Unknown error")"
                 messages[index].status = .error
             }
         } catch {
+            print("📝 [SiteEditor] 🔴 General Error: \(error)")
+            print("📝 [SiteEditor] 🔴 Error Type: \(type(of: error))")
             errorMessage = error.localizedDescription
             if let index = messages.lastIndex(where: { !$0.isUser && $0.status == .processing }) {
                 messages[index].content = "Error: \(error.localizedDescription)"
@@ -107,6 +124,7 @@ class SiteEditorViewModel: ObservableObject {
         }
 
         isProcessing = false
+        print("📝 [SiteEditor] ====== SEND MESSAGE END ======\n")
     }
 
     func startPollingPreview(changeId: String) {

@@ -9,14 +9,21 @@ class SitesViewModel: ObservableObject {
     @Published var showAddSite = false
 
     func loadSites() async {
+        print("📋 [SitesVM] Loading sites...")
         isLoading = true
         errorMessage = nil
 
         do {
             sites = try await APIClient.shared.getSites()
+            print("📋 [SitesVM] ✅ Loaded \(sites.count) sites:")
+            for site in sites {
+                print("📋 [SitesVM]   - \(site.name) | Repo: \(site.repoName) | ID: \(site.id)")
+            }
         } catch let error as APIError {
+            print("📋 [SitesVM] 🔴 APIError loading sites: \(error.localizedDescription ?? "unknown")")
             errorMessage = error.localizedDescription
         } catch {
+            print("📋 [SitesVM] 🔴 Error loading sites: \(error)")
             errorMessage = error.localizedDescription
         }
 
@@ -24,6 +31,11 @@ class SitesViewModel: ObservableObject {
     }
 
     func createSite(name: String, repoName: String, vercelProjectId: String?) async -> Bool {
+        print("📋 [SitesVM] Creating site...")
+        print("📋 [SitesVM]   Name: \(name)")
+        print("📋 [SitesVM]   Repo: \(repoName)")
+        print("📋 [SitesVM]   Vercel ID: \(vercelProjectId ?? "nil")")
+        
         isLoading = true
         errorMessage = nil
 
@@ -33,15 +45,18 @@ class SitesViewModel: ObservableObject {
                 repoName: repoName,
                 vercelProjectId: vercelProjectId?.isEmpty == true ? nil : vercelProjectId
             )
+            print("📋 [SitesVM] ✅ Site created: \(newSite.id)")
             sites.insert(newSite, at: 0)
             showAddSite = false
             isLoading = false
             return true
         } catch let error as APIError {
+            print("📋 [SitesVM] 🔴 APIError creating site: \(error.localizedDescription ?? "unknown")")
             errorMessage = error.localizedDescription
             isLoading = false
             return false
         } catch {
+            print("📋 [SitesVM] 🔴 Error creating site: \(error)")
             errorMessage = error.localizedDescription
             isLoading = false
             return false

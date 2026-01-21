@@ -47,9 +47,14 @@ export async function POST(
     }
 
     const defaultBranch = await getDefaultBranch(site.repoName);
+    console.log(`🔍 [ChatAPI] Repo: ${site.repoName}, Branch: ${defaultBranch}`);
+
     const files = await getRepoFiles(site.repoName, defaultBranch);
+    console.log(`🔍 [ChatAPI] Found ${files.length} files`);
+    files.forEach(f => console.log(`   - ${f.path}`));
 
     if (files.length === 0) {
+      console.log('❌ [ChatAPI] No editable files found!');
       return corsErrorResponse('No editable files found in repository', 400);
     }
 

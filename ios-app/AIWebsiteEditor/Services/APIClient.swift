@@ -36,8 +36,7 @@ class APIClient {
     #if DEBUG
     private let baseURL = "http://localhost:3000"
     #else
-    // TODO: Replace with your actual Vercel deployment URL
-    private let baseURL = "https://ai-website-editor-backend.vercel.app"
+    private let baseURL = "https://backend-pi-three-48.vercel.app"
     #endif
 
     private init() {}
@@ -52,8 +51,14 @@ class APIClient {
         body: Encodable? = nil
     ) async throws -> T {
         guard let url = URL(string: "\(baseURL)\(endpoint)") else {
+            print("🔴 [APIClient] Invalid URL for endpoint: \(endpoint)")
             throw APIError.invalidURL
         }
+
+        print("🔵 [APIClient] ====== REQUEST START ======")
+        print("🔵 [APIClient] URL: \(url.absoluteString)")
+        print("🔵 [APIClient] Method: \(method)")
+        print("🔵 [APIClient] Has Token: \(token != nil)")
 
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -61,26 +66,46 @@ class APIClient {
 
         if let token = token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            print("🔵 [APIClient] Token (first 20 chars): \(String(token.prefix(20)))...")
         }
 
         if let body = body {
             let encoder = JSONEncoder()
+            encoder.outputFormatting = .prettyPrinted
             request.httpBody = try encoder.encode(body)
+            if let bodyString = String(data: request.httpBody!, encoding: .utf8) {
+                print("🔵 [APIClient] Request Body:\n\(bodyString)")
+            }
         }
 
+        let startTime = Date()
         let (data, response) = try await URLSession.shared.data(for: request)
+        let duration = Date().timeIntervalSince(startTime)
+        
+        print("🔵 [APIClient] Response received in \(String(format: "%.2f", duration))s")
 
         guard let httpResponse = response as? HTTPURLResponse else {
+            print("🔴 [APIClient] Invalid response type (not HTTPURLResponse)")
             throw APIError.invalidResponse
         }
 
+        print("🔵 [APIClient] Status Code: \(httpResponse.statusCode)")
+        
+        // Always log the raw response for debugging
+        if let responseString = String(data: data, encoding: .utf8) {
+            print("🔵 [APIClient] Raw Response:\n\(responseString)")
+        }
+
         if httpResponse.statusCode == 401 {
+            print("🔴 [APIClient] Unauthorized - clearing token")
             _ = KeychainService.shared.deleteToken()
             throw APIError.unauthorized
         }
 
         if httpResponse.statusCode >= 400 {
+            print("🔴 [APIClient] Server error: \(httpResponse.statusCode)")
             if let errorResponse = try? JSONDecoder().decode(ErrorResponse.self, from: data) {
+                print("🔴 [APIClient] Error message: \(errorResponse.error)")
                 throw APIError.serverError(errorResponse.error)
             }
             throw APIError.serverError("Server error: \(httpResponse.statusCode)")
@@ -88,8 +113,13 @@ class APIClient {
 
         do {
             let decoder = JSONDecoder()
-            return try decoder.decode(T.self, from: data)
+            let result = try decoder.decode(T.self, from: data)
+            print("🟢 [APIClient] Successfully decoded response")
+            print("🔵 [APIClient] ====== REQUEST END ======\n")
+            return result
         } catch {
+            print("🔴 [APIClient] Decoding error: \(error)")
+            print("🔴 [APIClient] Failed to decode type: \(T.self)")
             throw APIError.decodingError(error)
         }
     }
