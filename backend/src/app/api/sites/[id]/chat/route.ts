@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getUserFromRequest } from '@/lib/auth';
 import { corsResponse, corsErrorResponse, handleCorsOptions } from '@/lib/cors';
-import { getRepoFiles, createBranch, commitFiles, getDefaultBranch, getOwnerAndRepo } from '@/lib/github';
+import { getRepoFiles, createBranch, commitFiles, getDefaultBranch } from '@/lib/github';
 import { generateCodeChanges, AIModel } from '@/lib/ai';
 
 const VERCEL_TEAM_ID = process.env.VERCEL_TEAM_ID || '';
