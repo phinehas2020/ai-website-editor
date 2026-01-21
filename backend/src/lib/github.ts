@@ -6,6 +6,14 @@ const octokit = new Octokit({
 
 const GITHUB_ORG = process.env.GITHUB_ORG || '';
 
+function getOwnerAndRepo(repoName: string): { owner: string; repo: string } {
+  if (repoName.includes('/')) {
+    const [owner, repo] = repoName.split('/');
+    return { owner, repo };
+  }
+  return { owner: GITHUB_ORG, repo: repoName };
+}
+
 interface FileContent {
   path: string;
   content: string;
@@ -17,7 +25,7 @@ interface RepoFile {
   sha: string;
 }
 
-const EDITABLE_EXTENSIONS = ['.tsx', '.ts', '.jsx', '.js', '.json', '.css', '.scss'];
+const EDITABLE_EXTENSIONS = ['.tsx', '.ts', '.jsx', '.js', '.json', '.css', '.scss', '.html', '.md'];
 const EXCLUDED_PATHS = [
   'node_modules',
   '.env',
@@ -39,12 +47,13 @@ function isEditableFile(path: string): boolean {
 
 export async function getRepoFiles(repoName: string, branch: string = 'main'): Promise<RepoFile[]> {
   const files: RepoFile[] = [];
+  const { owner, repo } = getOwnerAndRepo(repoName);
 
   async function fetchDirectory(path: string = '') {
     try {
       const { data } = await octokit.repos.getContent({
-        owner: GITHUB_ORG,
-        repo: repoName,
+        owner,
+        repo,
         path,
         ref: branch,
       });
@@ -82,9 +91,10 @@ export async function getFileContent(
   branch: string = 'main'
 ): Promise<{ content: string; sha: string } | null> {
   try {
+    const { owner, repo } = getOwnerAndRepo(repoName);
     const { data } = await octokit.repos.getContent({
-      owner: GITHUB_ORG,
-      repo: repoName,
+      owner,
+      repo,
       path,
       ref: branch,
     });
@@ -102,15 +112,16 @@ export async function getFileContent(
 
 export async function createBranch(repoName: string, branchName: string, baseBranch: string = 'main'): Promise<boolean> {
   try {
+    const { owner, repo } = getOwnerAndRepo(repoName);
     const { data: ref } = await octokit.git.getRef({
-      owner: GITHUB_ORG,
-      repo: repoName,
+      owner,
+      repo,
       ref: `heads/${baseBranch}`,
     });
 
     await octokit.git.createRef({
-      owner: GITHUB_ORG,
-      repo: repoName,
+      owner,
+      repo,
       ref: `refs/heads/${branchName}`,
       sha: ref.object.sha,
     });
@@ -129,13 +140,14 @@ export async function commitFiles(
   message: string
 ): Promise<boolean> {
   try {
+    const { owner, repo } = getOwnerAndRepo(repoName);
     for (const file of files) {
       const existingFile = await getFileContent(repoName, file.path, branchName);
 
       if (existingFile) {
         await octokit.repos.createOrUpdateFileContents({
-          owner: GITHUB_ORG,
-          repo: repoName,
+          owner,
+          repo,
           path: file.path,
           message,
           content: Buffer.from(file.content).toString('base64'),
@@ -144,8 +156,8 @@ export async function commitFiles(
         });
       } else {
         await octokit.repos.createOrUpdateFileContents({
-          owner: GITHUB_ORG,
-          repo: repoName,
+          owner,
+          repo,
           path: file.path,
           message,
           content: Buffer.from(file.content).toString('base64'),
@@ -163,9 +175,10 @@ export async function commitFiles(
 
 export async function mergeBranch(repoName: string, branchName: string, baseBranch: string = 'main'): Promise<boolean> {
   try {
+    const { owner, repo } = getOwnerAndRepo(repoName);
     await octokit.repos.merge({
-      owner: GITHUB_ORG,
-      repo: repoName,
+      owner,
+      repo,
       base: baseBranch,
       head: branchName,
       commit_message: `Merge ${branchName} into ${baseBranch}`,
@@ -180,9 +193,10 @@ export async function mergeBranch(repoName: string, branchName: string, baseBran
 
 export async function deleteBranch(repoName: string, branchName: string): Promise<boolean> {
   try {
+    const { owner, repo } = getOwnerAndRepo(repoName);
     await octokit.git.deleteRef({
-      owner: GITHUB_ORG,
-      repo: repoName,
+      owner,
+      repo,
       ref: `heads/${branchName}`,
     });
 
@@ -195,9 +209,10 @@ export async function deleteBranch(repoName: string, branchName: string): Promis
 
 export async function getDefaultBranch(repoName: string): Promise<string> {
   try {
+    const { owner, repo } = getOwnerAndRepo(repoName);
     const { data } = await octokit.repos.get({
-      owner: GITHUB_ORG,
-      repo: repoName,
+      owner,
+      repo,
     });
     return data.default_branch;
   } catch (error) {
