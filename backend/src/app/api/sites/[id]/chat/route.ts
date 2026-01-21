@@ -47,24 +47,10 @@ export async function POST(
     }
 
     const defaultBranch = await getDefaultBranch(site.repoName);
-    console.log(`🔍 [ChatAPI] Repo: ${site.repoName}, Branch: ${defaultBranch}`);
-
     const files = await getRepoFiles(site.repoName, defaultBranch);
-    console.log(`🔍 [ChatAPI] Found ${files.length} files`);
-    files.forEach(f => console.log(`   - ${f.path}`));
 
     if (files.length === 0) {
-      console.log('❌ [ChatAPI] No editable files found!');
-      // Return debug info in the error to verify what the server sees
-      return corsResponse({
-        error: 'No editable files found in repository',
-        debug: {
-          repoName: site.repoName,
-          defaultBranch,
-          filesFound: files.length,
-          ownerAndRepo: getOwnerAndRepo(site.repoName)
-        }
-      }, 400);
+      return corsErrorResponse('No editable files found in repository', 400);
     }
 
     const aiResponse = await generateCodeChanges(files, message, model as AIModel);
@@ -102,7 +88,9 @@ export async function POST(
       return corsErrorResponse('Failed to commit changes', 500);
     }
 
-    const projectName = site.vercelProjectId || site.repoName;
+    // Extract repo name if it contains owner (e.g. "owner/repo" -> "repo")
+    const repoNameOnly = site.repoName.split('/').pop() || site.repoName;
+    const projectName = site.vercelProjectId || repoNameOnly;
     const previewUrl = `https://${projectName}-git-${branchName}-${VERCEL_TEAM_ID}.vercel.app`;
 
     const pendingChange = await prisma.pendingChange.create({
