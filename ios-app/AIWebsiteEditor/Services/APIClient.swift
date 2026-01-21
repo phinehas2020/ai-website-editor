@@ -36,7 +36,8 @@ class APIClient {
     #if DEBUG
     private let baseURL = "http://localhost:3000"
     #else
-    private let baseURL = "https://your-backend.vercel.app"
+    // TODO: Replace with your actual Vercel deployment URL
+    private let baseURL = "https://ai-website-editor-backend.vercel.app"
     #endif
 
     private init() {}
