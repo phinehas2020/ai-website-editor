@@ -1,17 +1,18 @@
 import { Octokit } from '@octokit/rest';
 
 const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
+  auth: (process.env.GITHUB_TOKEN || '').trim(),
 });
 
-const GITHUB_ORG = process.env.GITHUB_ORG || '';
+const GITHUB_ORG = (process.env.GITHUB_ORG || '').trim();
 
 export function getOwnerAndRepo(repoName: string): { owner: string; repo: string } {
-  if (repoName.includes('/')) {
-    const [owner, repo] = repoName.split('/');
-    return { owner, repo };
+  const cleanRepoName = repoName.trim();
+  if (cleanRepoName.includes('/')) {
+    const [owner, repo] = cleanRepoName.split('/');
+    return { owner: owner.trim(), repo: repo.trim() };
   }
-  return { owner: GITHUB_ORG, repo: repoName };
+  return { owner: GITHUB_ORG, repo: cleanRepoName };
 }
 
 interface FileContent {
